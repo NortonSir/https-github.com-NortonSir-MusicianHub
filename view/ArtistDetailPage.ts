@@ -9,6 +9,9 @@ type DetailPageProps = {
   language: Language;
   analyticsData: AnalyticsData;
   t: (key: TranslationKey) => string;
+  isGeneratingImage: boolean;
+  isImageLoading: boolean;
+  generatedImageUrl: string;
 };
 
 type DetailPageHandlers = {
@@ -21,6 +24,10 @@ type DetailPageHandlers = {
   handleDownloadEPK: () => void;
   setLanguage: (lang: Language) => void;
   profile: ArtistProfile;
+  handleOpenImageGenerator: () => void;
+  handleCloseImageGenerator: () => void;
+  handleGenerateImage: (prompt: string, style: string) => void;
+  handleUseGeneratedImage: () => void;
 };
 
 
@@ -69,7 +76,7 @@ function renderHeader(profile: ArtistProfile, t: (key: TranslationKey) => string
     return `
     <header class="relative h-64 md:h-80 w-full bg-white">
       <button id="btn-back-mobile" class="lg:hidden absolute top-4 left-4 z-10 p-2 bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-colors shadow-lg" aria-label="${t('backToList')}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
       </button>
       <img src="${profile.coverImage}" alt="Cover" class="w-full h-full object-cover" />
       <div class="absolute inset-0 bg-white/20"></div>
@@ -200,6 +207,16 @@ function renderEditModal(profile: ArtistProfile, t: (key: TranslationKey) => str
             <label for="${name}" class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
             <input type="text" id="${name}" name="${name}" value="${value}" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"/>
         </div>`;
+    
+    const profilePicField = `
+        <div>
+            <label for="profilePicture" class="block text-sm font-medium text-gray-700 mb-1">${t('profilePicURL')}</label>
+            <div class="flex items-center gap-2">
+                <input type="text" id="profilePicture" name="profilePicture" value="${profile.profilePicture}" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"/>
+                <button type="button" id="btn-open-image-generator" class="px-3 py-2 bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-md hover:bg-indigo-200 transition-colors whitespace-nowrap">${t('generateWithAI')}</button>
+            </div>
+        </div>
+    `;
 
     return `
     <div id="edit-modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-start p-4 overflow-y-auto">
@@ -221,7 +238,7 @@ function renderEditModal(profile: ArtistProfile, t: (key: TranslationKey) => str
                 <textarea id="bio" name="bio" rows="5" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500">${profile.bio}</textarea>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              ${inputField(t('profilePicURL'), 'profilePicture', profile.profilePicture)}
+              ${profilePicField}
               ${inputField(t('coverImageURL'), 'coverImage', profile.coverImage)}
             </div>
             <h3 class="text-lg font-semibold text-gray-900 border-t border-gray-200 pt-6">${t('socialLinks')}</h3>
@@ -242,10 +259,67 @@ function renderEditModal(profile: ArtistProfile, t: (key: TranslationKey) => str
     </div>`;
 }
 
+function renderImageGeneratorModal(props: { t: (key: TranslationKey) => string, isImageLoading: boolean, generatedImageUrl: string }): string {
+    const { t, isImageLoading, generatedImageUrl } = props;
+
+    const imageDisplay = isImageLoading ?
+        `<div class="w-full h-full flex items-center justify-center bg-gray-100 rounded-md">
+            <svg class="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="ml-4 text-gray-600">${t('generating')}</span>
+        </div>` :
+        (generatedImageUrl ?
+            `<img src="${generatedImageUrl}" alt="Generated Profile Picture" class="w-full h-full object-contain rounded-md"/>` :
+            `<div class="w-full h-full flex items-center justify-center bg-gray-100 rounded-md text-gray-500">
+                ${t('generateProfilePicture')}
+            </div>`
+        );
+    
+    return `
+    <div id="image-generator-backdrop" class="fixed inset-0 bg-black bg-opacity-60 z-[60] flex justify-center items-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-6 flex flex-col">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">${t('generateProfilePicture')}</h3>
+                <div class="space-y-4 flex-grow flex flex-col">
+                    <div>
+                        <label for="image-prompt-input" class="block text-sm font-medium text-gray-700 mb-1">${t('imagePromptPlaceholder')}</label>
+                        <textarea id="image-prompt-input" rows="4" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    </div>
+                    <div>
+                        <label for="image-style-select" class="block text-sm font-medium text-gray-700 mb-1">${t('imageStyle')}</label>
+                        <select id="image-style-select" class="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="Photorealistic">${t('stylePhotorealistic')}</option>
+                            <option value="Oil painting">${t('styleOilPainting')}</option>
+                            <option value="Watercolor">${t('styleWatercolor')}</option>
+                            <option value="Black and white photo">${t('styleBlackAndWhite')}</option>
+                        </select>
+                    </div>
+                    <div class="mt-auto pt-4 flex justify-end items-center space-x-4">
+                        <button type="button" id="btn-cancel-generation" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors">${t('cancel')}</button>
+                        <button type="button" id="btn-generate-image" class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-colors" ${isImageLoading ? 'disabled' : ''}>
+                          ${isImageLoading ? t('generating') : t('generate')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 flex flex-col">
+                <div class="aspect-square w-full h-full flex-grow">
+                    ${imageDisplay}
+                </div>
+                <button type="button" id="btn-use-generated-image" class="mt-4 w-full px-6 py-2 bg-green-600 text-white font-semibold rounded-md hover:bg-green-700 transition-colors disabled:bg-gray-400" ${!generatedImageUrl || isImageLoading ? 'disabled' : ''}>
+                    ${t('useThisImage')}
+                </button>
+            </div>
+        </div>
+    </div>`;
+}
+
 // --- MAIN RENDERER & EVENT ATTACHER ---
 
 export function renderArtistDetailPage(props: DetailPageProps): string {
-  const { profile, activeTab, isEditing, language, analyticsData, t } = props;
+  const { profile, activeTab, isEditing, language, analyticsData, t, isGeneratingImage, isImageLoading, generatedImageUrl } = props;
 
   const upcomingEventDate = (() => {
       if (!profile || !profile.events || profile.events.length === 0) return undefined;
@@ -286,6 +360,7 @@ export function renderArtistDetailPage(props: DetailPageProps): string {
         </main>
       </div>
       ${isEditing ? renderEditModal(profile, t) : ''}
+      ${isGeneratingImage ? renderImageGeneratorModal({ t, isImageLoading, generatedImageUrl }) : ''}
     </div>`;
 }
 
@@ -307,7 +382,7 @@ export function attachArtistDetailListeners(handlers: DetailPageHandlers) {
   listen('btn-lang-ko', 'click', () => handlers.setLanguage('ko'));
   listen('btn-lang-en', 'click', () => handlers.setLanguage('en'));
 
-  // Modal Listeners
+  // Edit Modal Listeners
   listen('btn-modal-close', 'click', handlers.onCloseModal);
   listen('btn-modal-cancel', 'click', handlers.onCloseModal);
   listen('edit-modal-backdrop', 'click', (e) => {
@@ -315,6 +390,22 @@ export function attachArtistDetailListeners(handlers: DetailPageHandlers) {
         handlers.onCloseModal();
     }
   });
+
+  // Image Generator Listeners
+  listen('btn-open-image-generator', 'click', handlers.handleOpenImageGenerator);
+  listen('btn-cancel-generation', 'click', handlers.handleCloseImageGenerator);
+  listen('image-generator-backdrop', 'click', (e) => {
+      if ((e.target as HTMLElement).id === 'image-generator-backdrop') {
+          handlers.handleCloseImageGenerator();
+      }
+  });
+  listen('btn-generate-image', 'click', () => {
+      const prompt = (document.getElementById('image-prompt-input') as HTMLTextAreaElement).value;
+      const style = (document.getElementById('image-style-select') as HTMLSelectElement).value;
+      handlers.handleGenerateImage(prompt, style);
+  });
+  listen('btn-use-generated-image', 'click', handlers.handleUseGeneratedImage);
+
 
   const form = document.getElementById('edit-profile-form') as HTMLFormElement;
   if (form) {

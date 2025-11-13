@@ -53,6 +53,18 @@ export const translations = {
     instagram: '인스타그램',
     twitter: '트위터',
     facebook: '페이스북',
+    // AI Image Generation
+    generateWithAI: 'AI로 생성',
+    generateProfilePicture: '프로필 사진 생성',
+    imagePromptPlaceholder: '이미지 설명을 입력하세요 (예: 클래식 콘서트 홀을 배경으로 한 모습)...',
+    imageStyle: '이미지 스타일',
+    stylePhotorealistic: '사실적인 사진',
+    styleOilPainting: '유화',
+    styleWatercolor: '수채화',
+    styleBlackAndWhite: '흑백 사진',
+    generate: '생성하기',
+    generating: '생성 중...',
+    useThisImage: '이 이미지 사용',
   },
   en: {
     // main list page
@@ -108,5 +120,17 @@ export const translations = {
     instagram: 'Instagram',
     twitter: 'Twitter',
     facebook: 'Facebook',
+    // AI Image Generation
+    generateWithAI: 'Generate with AI',
+    generateProfilePicture: 'Generate Profile Picture',
+    imagePromptPlaceholder: 'Enter an image description (e.g., against a backdrop of a classical concert hall)...',
+    imageStyle: 'Image Style',
+    stylePhotorealistic: 'Photorealistic',
+    styleOilPainting: 'Oil Painting',
+    styleWatercolor: 'Watercolor',
+    styleBlackAndWhite: 'Black and White',
+    generate: 'Generate',
+    generating: 'Generating...',
+    useThisImage: 'Use This Image',
   },
 };

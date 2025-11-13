@@ -1,5 +1,5 @@
 {
-  "name": "뮤지션-프로필-허브",
+  "name": "새로운-프로젝트",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-
+    "@google/genai": "^1.29.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
