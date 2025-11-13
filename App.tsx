@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { ArtistProfile, Language, TranslationKey } from './types';
 import { ARTIST_LIST, MOCK_ANALYTICS_DATA } from './constants';
@@ -90,10 +89,10 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {filteredArtists.map(artist => (
                     <div key={artist.name} onClick={() => handleSelectArtist(artist)} className="cursor-pointer group text-center">
-                        <div className="aspect-square rounded-lg overflow-hidden shadow-lg transition-transform duration-300 group-hover:scale-105 border-2 border-transparent group-hover:border-indigo-500">
+                        <div className="aspect-square rounded-lg overflow-hidden shadow-lg transition-transform duration-300 group-hover:scale-105 border-2 border-transparent group-hover:border-indigo-300">
                             <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover"/>
                         </div>
-                        <h3 className="mt-2 font-semibold text-gray-800 truncate group-hover:text-indigo-600">{artist.name}</h3>
+                        <h3 className="mt-2 font-semibold text-gray-800 truncate group-hover:text-indigo-500">{artist.name}</h3>
                          <p className="text-sm text-gray-500 truncate">{artist.genre}</p>
                     </div>
                 ))}
