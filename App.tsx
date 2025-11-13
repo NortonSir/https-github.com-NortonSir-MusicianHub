@@ -11,6 +11,7 @@ import EventSection from './components/EventSection';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import EditProfileModal from './components/EditProfileModal';
 import Sidebar from './components/Sidebar';
+import ArtistListPage from './components/ArtistListPage';
 
 const App: React.FC = () => {
   const [artists, setArtists] = useState<ArtistProfile[]>(ARTIST_LIST);
@@ -73,32 +74,13 @@ const App: React.FC = () => {
 
   if (view === 'list') {
     return (
-      <div className="min-h-screen bg-gray-100 font-sans">
-        <main className="container mx-auto p-4 md:p-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">MusicianHub</h1>
-            <p className="text-lg text-gray-600 mb-8">{t('discoverArtists')}</p>
-            <div className="mb-8">
-                <input
-                    type="text"
-                    placeholder={t('searchPlaceholder')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full max-w-lg p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {filteredArtists.map(artist => (
-                    <div key={artist.name} onClick={() => handleSelectArtist(artist)} className="cursor-pointer group text-center">
-                        <div className="aspect-square rounded-lg overflow-hidden shadow-lg transition-transform duration-300 group-hover:scale-105 border-2 border-transparent group-hover:border-indigo-300">
-                            <img src={artist.profilePicture} alt={artist.name} className="w-full h-full object-cover"/>
-                        </div>
-                        <h3 className="mt-2 font-semibold text-gray-800 truncate group-hover:text-indigo-500">{artist.name}</h3>
-                         <p className="text-sm text-gray-500 truncate">{artist.genre}</p>
-                    </div>
-                ))}
-            </div>
-        </main>
-      </div>
+      <ArtistListPage
+        artists={filteredArtists}
+        searchQuery={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+        onSelectArtist={handleSelectArtist}
+        t={t}
+      />
     );
   }
 
