@@ -8,8 +8,6 @@ export interface SocialLinks {
   youtube?: string;
   facebook?: string;
   twitter?: string;
-  spotify?: string;
-  appleMusic?: string;
 }
 
 export interface MusicRelease {
@@ -19,8 +17,6 @@ export interface MusicRelease {
   releaseDate: string;
   coverArt: string;
   links: {
-    spotify?: string;
-    appleMusic?: string;
     youtubeMusic?: string;
   };
 }

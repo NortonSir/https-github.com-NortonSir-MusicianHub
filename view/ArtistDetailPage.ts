@@ -20,6 +20,7 @@ type DetailPageHandlers = {
   handleShare: () => void;
   handleDownloadEPK: () => void;
   setLanguage: (lang: Language) => void;
+  profile: ArtistProfile;
 };
 
 
@@ -93,7 +94,6 @@ function renderHeader(profile: ArtistProfile, t: (key: TranslationKey) => string
 
 function renderSocialLinks(socials: SocialLinks, t: (key: TranslationKey) => string): string {
     const platforms: { key: keyof SocialLinks, icon: string, nameKey: TranslationKey }[] = [
-        { key: 'spotify', icon: ICONS.spotify, nameKey: 'spotify' }, { key: 'appleMusic', icon: ICONS.appleMusic, nameKey: 'appleMusic' },
         { key: 'youtube', icon: ICONS.youtube, nameKey: 'youtube' }, { key: 'instagram', icon: ICONS.instagram, nameKey: 'instagram' },
         { key: 'twitter', icon: ICONS.twitter, nameKey: 'twitter' }, { key: 'facebook', icon: ICONS.facebook, nameKey: 'facebook' },
     ];
@@ -114,8 +114,6 @@ function renderMusicSection(music: MusicRelease[]): string {
           <h3 class="text-lg font-semibold text-gray-800">${item.title}</h3>
           <p class="text-sm text-gray-500">${item.type} • ${item.releaseDate}</p>
           <div class="flex justify-center sm:justify-start items-center gap-4 mt-2">
-            ${item.links.spotify ? `<a href="${item.links.spotify}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-green-500">${ICONS.spotifySmall}</a>` : ''}
-            ${item.links.appleMusic ? `<a href="${item.links.appleMusic}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-pink-500">${ICONS.appleMusicSmall}</a>` : ''}
             ${item.links.youtubeMusic ? `<a href="${item.links.youtubeMusic}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-red-500">${ICONS.youtubeSmall}</a>` : ''}
           </div>
         </div>
@@ -228,8 +226,6 @@ function renderEditModal(profile: ArtistProfile, t: (key: TranslationKey) => str
             </div>
             <h3 class="text-lg font-semibold text-gray-900 border-t border-gray-200 pt-6">${t('socialLinks')}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-               ${inputField(t('spotifyURL'), 'spotify', profile.socials.spotify || '')}
-               ${inputField(t('appleMusicURL'), 'appleMusic', profile.socials.appleMusic || '')}
                ${inputField(t('youtubeURL'), 'youtube', profile.socials.youtube || '')}
                ${inputField(t('instagramURL'), 'instagram', profile.socials.instagram || '')}
                ${inputField(t('twitterURL'), 'twitter', profile.socials.twitter || '')}
@@ -335,8 +331,6 @@ export function attachArtistDetailListeners(handlers: DetailPageHandlers) {
         coverImage: formData.get('coverImage') as string,
         contactEmail: formData.get('contactEmail') as string,
         socials: {
-          spotify: formData.get('spotify') as string,
-          appleMusic: formData.get('appleMusic') as string,
           youtube: formData.get('youtube') as string,
           instagram: formData.get('instagram') as string,
           twitter: formData.get('twitter') as string,
@@ -344,9 +338,9 @@ export function attachArtistDetailListeners(handlers: DetailPageHandlers) {
         },
         // Music, videos, events are not editable in this form, so we keep the old data.
         // In a real app, these would be managed separately.
-        music: (handlers as any).profile?.music || [],
-        videos: (handlers as any).profile?.videos || [],
-        events: (handlers as any).profile?.events || [],
+        music: handlers.profile.music || [],
+        videos: handlers.profile.videos || [],
+        events: handlers.profile.events || [],
       };
       handlers.handleSaveProfile(updatedProfile);
     });
